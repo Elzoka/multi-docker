@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run --rm react-test npm run test -- --watchAll=false
+
+after_success:
+  - docker build -t elzoka/multi-client ./client
+  - docker build -t elzoka/multi-nginx ./nginx
+  - docker build -t elzoka/multi-server ./server
+  - docker build -t elzoka/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push elzoka/multi-client
+  - docker push elzoka/multi-nginx
+  - docker push elzoka/multi-server
+  - docker push elzoka/multi-worker
